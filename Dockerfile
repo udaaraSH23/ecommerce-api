@@ -1,7 +1,7 @@
 # ----------------------------
 # 1. Use official Node.js image
 # ----------------------------
-FROM node:20-alpine
+FROM node:20
 
 # ----------------------------
 # 2. Set working directory inside container
