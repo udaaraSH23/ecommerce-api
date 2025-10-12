@@ -1,14 +1,24 @@
 pipeline {
     agent any
 
+    parameters {
+        booleanParam(name: 'BUILD_IMAGE', defaultValue: true, description: 'Build Docker Image?')
+        booleanParam(name: 'PUSH_IMAGE', defaultValue: true, description: 'Push Docker Image to Docker Hub?')
+        booleanParam(name: 'DEPLOY_K8S', defaultValue: true, description: 'Deploy to Kubernetes?')
+        booleanParam(name: 'VERIFY_DEPLOYMENT', defaultValue: true, description: 'Verify Deployment?')
+    }
+
     environment {
-        IMAGE_NAME = 'udaraweb/ecommerce-api' 
-        IMAGE_TAG  = 'latest'
-        K8S_NAMESPACE = 'ecommerce' 
+        IMAGE_NAME = 'udaraweb/ecommerce-api'
+        IMAGE_TAG = 'latest'
+        K8S_NAMESPACE = 'ecommerce'
     }
 
     stages {
         stage('Build Docker Image') {
+            when {
+                expression { return params.BUILD_IMAGE }
+            }
             steps {
                 script {
                     echo "Building Docker image..."
@@ -18,11 +28,14 @@ pipeline {
         }
 
         stage('Push to Docker Hub') {
+            when {
+                expression { return params.PUSH_IMAGE }
+            }
             steps {
                 script {
                     echo "Pushing Docker image to Docker Hub..."
                     withCredentials([usernamePassword(
-                        credentialsId: 'dockerhub-cred', // Jenkins credential ID
+                        credentialsId: 'dockerhub-cred', 
                         usernameVariable: 'DOCKER_USERNAME', 
                         passwordVariable: 'DOCKER_PASSWORD'
                     )]) {
@@ -35,19 +48,23 @@ pipeline {
         }
 
         stage('Deploy to Kubernetes') {
+            when {
+                expression { return params.DEPLOY_K8S }
+            }
             steps {
                 script {
                     echo "Applying Kubernetes manifests..."
-                    // Apply Deployment and Service
-                    sh "kubectl apply -f k8s/deployment.yaml -n ${K8S_NAMESPACE}"
-                    sh "kubectl apply -f k8s/service.yaml -n ${K8S_NAMESPACE}"
-                    // Optional: Apply Ingress
-                    sh "kubectl apply -f k8s/ingress.yaml -n ${K8S_NAMESPACE}"
+                    sh "kubectl apply -f kubernetes/deployment.yaml -n ${K8S_NAMESPACE}"
+                    sh "kubectl apply -f kubernetes/service.yaml -n ${K8S_NAMESPACE}"
+                    sh "kubectl apply -f kubernetes/ingress.yaml -n ${K8S_NAMESPACE}"
                 }
             }
         }
 
         stage('Verify Deployment') {
+            when {
+                expression { return params.VERIFY_DEPLOYMENT }
+            }
             steps {
                 script {
                     echo "Checking pod status..."
