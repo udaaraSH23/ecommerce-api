@@ -1,35 +1,32 @@
 # ----------------------------
-# 1. Use official Node.js image
+# 1 Build stage: use Node.js official image
 # ----------------------------
-FROM node:20
+FROM node:20-alpine AS builder
 
-# ----------------------------
-# 2. Set working directory inside container
-# ----------------------------
-WORKDIR /usr/src/app
+# Set working directory
+WORKDIR /app
 
-# ----------------------------
-# 3. Copy package.json and package-lock.json first
-#    (this helps with Docker layer caching)
-# ----------------------------
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
-# ----------------------------
-# 4. Install only production dependencies
-# ----------------------------
+# Install dependencies
 RUN npm install --production
 
-# ----------------------------
-# 5. Copy the rest of your backend code
-# ----------------------------
+# Copy source code
 COPY . .
 
 # ----------------------------
-# 6. Expose your app’s port (change if needed)
+# 2 Production stage: use lighter Node.js runtime
 # ----------------------------
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy only needed files from build stage
+COPY --from=builder /app .
+
+# Expose port
 EXPOSE 3000
 
-# ----------------------------
-# 7. Start your backend
-# ----------------------------
+# Start the app
 CMD ["node", "server.js"]
