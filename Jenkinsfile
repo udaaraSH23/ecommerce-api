@@ -1,10 +1,12 @@
 pipeline {
-    agent any  
+    agent any
+
     stages {
         stage('Build Docker Image') {
             steps {
-                echo "Testing"
-                echo "Webhook Working"
+                script {
+                    docker.build('udaraweb/ecommerce-api:latest')
+                }
             }
         }
     }
