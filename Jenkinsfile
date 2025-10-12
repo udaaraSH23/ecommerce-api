@@ -4,6 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = 'udaraweb/ecommerce-api' 
         IMAGE_TAG  = 'latest'
+        K8S_NAMESPACE = 'ecommerce' 
     }
 
     stages {
@@ -29,6 +30,30 @@ pipeline {
                         sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
                         sh "docker logout"
                     }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    echo "Applying Kubernetes manifests..."
+                    // Apply Deployment and Service
+                    sh "kubectl apply -f k8s/deployment.yaml -n ${K8S_NAMESPACE}"
+                    sh "kubectl apply -f k8s/service.yaml -n ${K8S_NAMESPACE}"
+                    // Optional: Apply Ingress
+                    sh "kubectl apply -f k8s/ingress.yaml -n ${K8S_NAMESPACE}"
+                }
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                script {
+                    echo "Checking pod status..."
+                    sh "kubectl get pods -n ${K8S_NAMESPACE}"
+                    echo "Checking service status..."
+                    sh "kubectl get svc -n ${K8S_NAMESPACE}"
                 }
             }
         }
