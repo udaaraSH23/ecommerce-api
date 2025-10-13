@@ -1,0 +1,3 @@
+1. To access your application, run:
+   kubectl get pods
+   kubectl get svc

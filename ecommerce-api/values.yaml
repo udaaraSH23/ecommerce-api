@@ -1,0 +1,139 @@
+# =========================================
+# ⚙️ General Configuration
+# =========================================
+
+# Number of replicas (used when autoscaling is disabled)
+replicaCount: 1
+
+
+# =========================================
+# 🐳 Image Configuration
+# =========================================
+
+image:
+  # Docker image repository
+  repository: udaraweb/ecommerce-api
+
+  # Docker image tag (defaults to Chart.AppVersion if empty)
+  tag: "latest"
+
+  # Image pull policy: Always | IfNotPresent | Never
+  pullPolicy: IfNotPresent
+
+
+# =========================================
+# 👤 Service Account Configuration
+# =========================================
+serviceAccount:
+  # Set to false if you don’t need a ServiceAccount
+  create: false
+  # Optionally specify an existing service account name
+  name: ""
+
+
+# =========================================
+# ⚖️ Autoscaling Configuration
+# =========================================
+autoscaling:
+  enabled: false        # Disable autoscaling for now
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+
+# =========================================
+# 📦 Pod Configuration
+# =========================================
+
+# Optional annotations for your Pod metadata
+podAnnotations: {}
+
+# Optional labels for your Pod
+podLabels: {}
+
+# Optional security context at the Pod level
+podSecurityContext: {}
+
+# Optional security context for the container
+securityContext: {}
+
+# Optional image pull secrets (if using a private registry)
+imagePullSecrets: []
+
+
+# =========================================
+# 🧰 Container Resources
+# =========================================
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+
+
+# =========================================
+# 🧩 Probes (optional)
+# =========================================
+livenessProbe: {}
+readinessProbe: {}
+
+
+# =========================================
+# 📦 Volumes (optional)
+# =========================================
+volumes: []
+volumeMounts: []
+
+
+# =========================================
+# 🚀 Service Configuration
+# =========================================
+service:
+  # Type of service (ClusterIP | NodePort | LoadBalancer)
+  type: NodePort
+
+  # Service port (exposed port)
+  port: 80
+
+  # The port inside the container (referenced in targetPort)
+  targetPort: 3333
+
+  # Optional NodePort number (only used if type=NodePort)
+  nodePort: 30080
+
+
+# =========================================
+# 🌍 Ingress Configuration
+# =========================================
+ingress:
+  enabled: true
+
+  # Name of the ingress class (e.g., "nginx")
+  className: "nginx"
+
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+
+  # Host rules for routing traffic
+  hosts:
+    - host: ecommerce.local     # Local domain (add to /etc/hosts)
+      paths:
+        - path: /
+          pathType: Prefix
+
+  # Optional TLS configuration (uncomment to enable HTTPS)
+  # tls:
+  #   - secretName: ecommerce-tls
+  #     hosts:
+  #       - ecommerce.local
+
+
+# =========================================
+# 🏷 Node Placement (optional)
+# =========================================
+nodeSelector: {}
+affinity: {}
+tolerations: []
