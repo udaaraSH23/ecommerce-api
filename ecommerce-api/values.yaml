@@ -93,7 +93,7 @@ volumeMounts: []
 # =========================================
 service:
   # Type of service (ClusterIP | NodePort | LoadBalancer)
-  type: NodePort
+  type: ClusterIP
 
   # Service port (exposed port)
   port: 80
