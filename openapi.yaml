@@ -1,0 +1,330 @@
+openapi: 3.0.0
+info:
+  title: Ecommerce API
+  description: API for managing products, cart, wishlist, orders, and reviews. Integrated with WSO2 API Manager.
+  version: 1.0.0
+
+servers:
+  - url: http://ecommerce.local/api
+    description: Production Server (via Ingress)
+  - url: http://localhost:3333/api
+    description: Local Development Server
+
+components:
+  securitySchemes:
+    UserID:
+      type: apiKey
+      in: header
+      name: x-user-id
+      description: User ID injected by WSO2 API Manager after authentication.
+
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        price:
+          type: number
+        description:
+          type: string
+        category:
+          type: string
+        stock:
+          type: integer
+
+    CartItem:
+      type: object
+      properties:
+        productId:
+          type: integer
+        quantity:
+          type: integer
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        totalAmount:
+          type: number
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    Review:
+      type: object
+      properties:
+        productId:
+          type: integer
+        rating:
+          type: integer
+        comment:
+          type: string
+
+paths:
+  /products:
+    get:
+      summary: Get all products
+      responses:
+        '200':
+          description: A list of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+    post:
+      summary: Create a product (Admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+      responses:
+        '201':
+          description: Product created
+
+  /products/{id}:
+    get:
+      summary: Get product by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Product details
+        '404':
+          description: Product not found
+    put:
+      summary: Update a product (Admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Product'
+      responses:
+        '200':
+          description: Product updated
+    delete:
+      summary: Remove a product (Admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Product deleted
+
+  /cart:
+    get:
+      summary: Get user cart
+      security:
+        - UserID: []
+      responses:
+        '200':
+          description: User cart items
+    post:
+      summary: Add item to cart
+      security:
+        - UserID: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartItem'
+      responses:
+        '201':
+          description: Item added
+    put:
+      summary: Update cart item quantity
+      security:
+        - UserID: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartItem'
+      responses:
+        '200':
+          description: Cart updated
+
+  /cart/{productId}:
+    delete:
+      summary: Remove item from cart
+      security:
+        - UserID: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Item removed
+
+  /orders:
+    get:
+      summary: Get user orders
+      security:
+        - UserID: []
+      responses:
+        '200':
+          description: List of orders
+    post:
+      summary: Create an order
+      security:
+        - UserID: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                totalAmount:
+                  type: number
+      responses:
+        '201':
+          description: Order created
+
+  /orders/{orderId}/status:
+    put:
+      summary: Update order status
+      security:
+        - UserID: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+      responses:
+        '200':
+          description: Order status updated
+
+  /wishlist:
+    get:
+      summary: Get user wishlist
+      security:
+        - UserID: []
+      responses:
+        '200':
+          description: Wishlist items
+    post:
+      summary: Add to wishlist
+      security:
+        - UserID: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                productId:
+                  type: integer
+      responses:
+        '201':
+          description: Added to wishlist
+
+  /wishlist/{productId}:
+    delete:
+      summary: Remove from wishlist
+      security:
+        - UserID: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Removed from wishlist
+
+  /reviews:
+    post:
+      summary: Add a review
+      security:
+        - UserID: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+      responses:
+        '201':
+          description: Review added
+    put:
+      summary: Update a review
+      security:
+        - UserID: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+      responses:
+        '200':
+          description: Review updated
+
+  /reviews/{productId}:
+    get:
+      summary: Get reviews for a product
+      security:
+        - UserID: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of reviews
+    delete:
+      summary: Delete a review
+      security:
+        - UserID: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Review deleted
